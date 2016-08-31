@@ -1,0 +1,98 @@
+// Goes through every location on the board, when reaches a non empty space,
+// it checks to see if there are 5 in a row using checkFiveInARow(). 
+// the directions are:
+//	(1,0) for positive X (horizontal)
+//	(0,1) for positive Y where positive is down (vertical) 
+//	(1,1) for positive X and Y (diagonal from Left Top to Right Down)
+//	(-1,1) for positive X and Y (diagonal from Right Top to Left Down)
+// NOTE: Because we are going through the board from Left to Right and Down, 
+// we do not need to check any other directions then the 4 listed
+Boolean fiveInARow()
+{
+  int player = determineWhichTeamsTurn();
+  for(int i = 0; i < boardSize; i++)
+  {
+    for(int j = 0; j < boardSize; j++)
+    {
+      if(Board[i][j] == player)
+      {
+        //checks Horizontally, Vertically, Diagonally Left and Diagonally Right in that order
+        if(checkFiveInARow( i, j, player, 1, 0) || (checkFiveInARow( i, j, player, 0, 1)) 
+        || (checkFiveInARow( i, j, player, 1, 1))  || (checkFiveInARow( i, j, player, -1, 1)))
+        {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
+
+// Based on the direction given, checks to see if there are five chips of the same color in a row
+// The pattern will be broken if it goes off the screen or the chip in the space does not match that of the player
+Boolean checkFiveInARow(int i, int j, int player, int xDirection, int yDirection)
+{
+  int k = 0;
+  Boolean broken = false;
+  while(k < 5 && !broken)
+  {
+    if(!inBounds(i+k*xDirection, j-k*yDirection) || Board[i+k*xDirection][j-k*yDirection] != player)
+    {
+      broken = true;
+    }
+    k++;
+  }
+  if(broken == false && k >= 5)
+  {
+    return true;
+  }
+  return false;
+}
+
+
+// Given thelastMoveCoord checks for captures 
+// Returns a list of pairs of coordinates of stones that have been captured. 
+// If two or more sets have been captured the list is as follows:
+// [ set1stone1.x, set1stone1.y, set1stone2.x, set1stone2.y, set2stone1.x, set2stone1.y, set2stone2.x, set2stone2.y, ... ]
+ArrayList<Coords> getCaptures(int[] lastMoveCoord)
+{
+  ArrayList<Coords> listOfCoordinates;
+  listOfCoordinates = new ArrayList<Coords>();
+  int self = determineWhichTeamsTurn();
+  int enemy = determineWhichTeamsWaiting();
+  
+  //check in every direction from that point
+  //we want to check for the opposite of the colors 
+  int x = lastMoveCoord[0];
+  int y = lastMoveCoord[1];
+  
+  for(int i = y - 1; i <= y + 1; i++)
+  {
+   for(int j = x - 1; j <= x + 1; j++)
+   {
+     if(inBounds(i,j) && Board[j][i] == enemy)
+     {
+       //calc difference between x and i, y and j
+       //Alg for second step is get difference then multiply by 2 :)
+       int diffX = j - x;
+       int diffY = i - y;
+       int j2 = x + diffX*2;
+       int i2 = y + diffY*2;
+       if(inBounds(j2,i2) && Board[j2][i2] == enemy)
+       {
+         //Want to check if next is self, alg is get original difference then multiply by 2
+         int j3 = x + diffX*3;
+         int i3 = y + diffY*3;
+         if(inBounds(j3,i3) && Board[j3][i3] == self)
+         {
+           //removeFromBoard(j, i, j2, i2, listOfCoordinates);
+           listOfCoordinates.add(new Coords(j, i));
+           listOfCoordinates.add(new Coords(x + diffX*2, y + diffY*2));
+         }
+       }
+     }
+   }
+  }
+  return listOfCoordinates;
+}

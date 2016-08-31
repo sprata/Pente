@@ -1,3 +1,4 @@
+// A simple class used to save X and Y coordinates of a given point
 
 class Coords
 {
